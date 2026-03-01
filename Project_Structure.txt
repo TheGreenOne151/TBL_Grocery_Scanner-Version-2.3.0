@@ -1,22 +1,28 @@
 tbl-grocery-app/
-├── elegant_app.py                          # Main FastAPI application
+├── elegant_app.py                          # Main FastAPI application (UPDATED for Quagga2)
 ├── requirements.txt                        # Python dependencies
 ├── runtime.txt                            # python-3.10.0
 ├── Procfile                               # Gunicorn with 2 workers
 ├── .gitignore                             # Git ignore rules
 ├── render.yaml                            # Render deployment config
-├── index.html                             # Frontend HTML interface
-├── comprehensive_grocery_certifications.xlsx  # Certification database (848 brands)
-├── brand_maintenance.py                   # Brand consistency checker
-├── MAINTENANCE.md                         # Brand maintenance guide
-├── Project_Structure.txt                  # This file
-├── README.md                              # Project documentation
-└── create_excel.py                        # Excel creation script (optional)
+├── index.html                             # Frontend HTML interface (UPDATED with Quagga2 scanner)
+├── comprehensive_grocery_certifications.xlsx  # Certification database (896 brands)
+├── brand_maintenance.py                    # Brand consistency checker
+├── MAINTENANCE.md                          # Brand maintenance guide
+├── Project_Structure.txt                   # This file (UPDATED)
+├── README.md                               # Project documentation
+└── create_excel.py                         # Excel creation script (optional)
+
+# New Features Added:
+# ├── Quagga2 Barcode Scanner               # Camera-based barcode scanning
+# ├── Scanner Modal with Visual Guide       # Full-screen camera overlay
+# ├── Auto-search on Scan                   # Automatically searches after successful scan
+# └── Torch/Flashlight Support              # For low-light conditions
 
 # Auto-created files:
 # └── user_data.json                       # Persistent user purchase data
 
 # Development folders (excluded by .gitignore):
-# ├── venv/                                # Virtual environment
-# ├── __pycache__/                         # Python cache
-# └── .vs/                                 # Visual Studio cache
+# ├── venv/                                 # Virtual environment
+# ├── __pycache__/                          # Python cache
+# └── .vs/                                   # Visual Studio cache

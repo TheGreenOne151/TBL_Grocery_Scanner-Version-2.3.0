@@ -3646,16 +3646,18 @@ async def reset_excel_file():
 
 @app.get("/validate/barcode/{barcode}")
 async def validate_barcode_format(barcode: str):
-    """Validate barcode format and provide debugging info for ZXing-web"""
-    # Common barcode patterns
+    """Validate barcode format and provide compatibility info for Quagga2"""
+    # Quagga2 supported formats
     patterns = {
-        "UPC-A": r"^\d{12}$",
-        "UPC-E": r"^\d{6,8}$",
         "EAN-13": r"^\d{13}$",
         "EAN-8": r"^\d{8}$",
-        "Code 39": r"^[A-Z0-9\-\.\ \$\/\+\%]+$",
+        "UPC-A": r"^\d{12}$",
+        "UPC-E": r"^\d{6,8}$",
         "Code 128": r"^[\x00-\x7F]+$",
-        "QR Code": r"^.+$",  # QR codes can contain any data
+        "Code 39": r"^[A-Z0-9\-\.\ \$\/\+\%]+$",
+        "Code 93": r"^[A-Z0-9\-\.\ \$\/\+\%]+$",
+        "Codabar": r"^[0-9\-\$\:\.\+\/]+$",
+        "Interleaved 2 of 5": r"^\d+$",
     }
 
     detected_formats = []
@@ -3668,12 +3670,11 @@ async def validate_barcode_format(barcode: str):
         "length": len(barcode),
         "detected_formats": detected_formats,
         "is_numeric": barcode.isdigit(),
-        "is_valid_upc": len(barcode) in [12, 13, 8] and barcode.isdigit(),
-        "zxing_support": "Yes" if detected_formats else "No - may need manual entry",
+        "quagga2_compatible": len(detected_formats) > 0,
         "suggested_action": (
-            "Scan with /scan endpoint"
+            "✓ Compatible with Quagga2 scanner"
             if detected_formats
-            else "Try manual lookup with /product/{barcode}"
+            else "⚠️ This format may not be supported by Quagga2. Try manual entry."
         ),
     }
 
@@ -3848,17 +3849,17 @@ async def debug_storage():
 @app.get("/product/{barcode}")
 async def get_product_info(barcode: str) -> Dict[str, Any]:
     """Get comprehensive product info by barcode with verified certifications"""
-    # Add ZXing-web specific validation
+    # Add Quagga2 validation
     if not barcode or barcode.strip() == "":
         raise HTTPException(
             status_code=400,
-            detail="Empty barcode. ZXing-web may not have captured properly. Try manual entry or rescan.",
+            detail="Empty barcode. Please try scanning again or enter manually.",
         )
 
-    # Check if barcode looks like a common format
+    # Check if barcode looks valid
     if len(barcode) < 6:
         logger.warning(
-            f"Short barcode from ZXing-web: {barcode}. May be misread.")
+            f"Short barcode detected: {barcode}. May be misread.")
 
     product = await food_facts_client.lookup_barcode(barcode)
 
@@ -3916,7 +3917,7 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
         "certification_sources": FileConfig.CERT_SOURCES,
         "scoring_methodology": f"Base {ScoringConfig.BASE_SCORE} + Objective Certification Bonuses Only + Multi-Cert Bonus",
         "methodology_explanation": "See /scoring-methodology for detailed breakdown",
-        "scanner_notes": "Scanned with ZXing-web. If barcode looks incorrect, try adjusting lighting or camera distance.",
+        "scanner_notes": "Scanned with Quagga2. For best results, ensure good lighting and hold the camera steady.",
     }
 
     # Include Open Food Facts data if product was found
@@ -3948,7 +3949,7 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
         }
 
     logger.info(
-        f"ZXing-web product lookup for barcode: {barcode} - Found: {product.get('found', False)}"
+        f"Quagga2 product lookup for barcode: {barcode} - Found: {product.get('found', False)}"
     )
     return sanitize_for_json(result)
 
@@ -3960,7 +3961,7 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
 async def scanner_health():
     """Check scanner system health and compatibility"""
     return {
-        "scanner_system": "ZXing-web (Browser Multi-Format Reader)",
+        "scanner_system": "Quagga2 (Multi-Format Barcode Scanner)",
         "backend_integration": "✓ Ready",
         "api_endpoints": {
             "scan": "/scan (POST) - Main scanning endpoint",
@@ -3969,16 +3970,18 @@ async def scanner_health():
             "health": "/scanner/health (GET)",
         },
         "supported_formats": [
-            "UPC-A (12-digit)",
-            "UPC-E (6-8 digit)",
             "EAN-13 (13-digit)",
             "EAN-8 (8-digit)",
-            "Code 39",
+            "UPC-A (12-digit)",
+            "UPC-E (6-8 digit)",
             "Code 128",
-            "QR Code",
+            "Code 39",
+            "Code 93",
+            "Codabar",
+            "Interleaved 2 of 5",
         ],
         "camera_requirements": "User media permission required",
-        "mobile_compatible": "Yes (iOS Safari 11+, Android Chrome 53+)",
+        "mobile_compatible": "Yes - optimized for Android and iOS",
         "https_required": "Recommended for camera access",
         "fallback_methods": [
             "Manual barcode entry",
@@ -3987,8 +3990,8 @@ async def scanner_health():
         ],
         "troubleshooting": {
             "no_camera": "Check browser permissions and ensure HTTPS",
-            "poor_scanning": "Improve lighting and hold steady",
-            "wrong_barcode": "Validate format at /validate/barcode/{code}",
+            "poor_scanning": "Ensure good lighting and hold steady",
+            "small_barcodes": "Move camera closer to small barcodes",
         },
     }
 

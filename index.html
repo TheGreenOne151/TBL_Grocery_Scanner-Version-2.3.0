@@ -636,6 +636,10 @@
         }
 
     </style>
+
+            <!-- Add Quagga2 barcode scanner library -->
+            <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+
 </head>
 <body>
     <div class="header">
@@ -694,7 +698,12 @@
 
               <div class="input-group">
                   <label for="searchInput" id="searchLabel">Enter Brand Name:</label>
-                  <input type="text" id="searchInput" placeholder="e.g., Coca-Cola, Nestlé, Ben & Jerry's">
+                  <div style="display: flex; gap: 8px;">
+                      <input type="text" id="searchInput" placeholder="e.g., Coca-Cola, Nestlé, Ben & Jerry's" style="flex: 1;">
+                      <button id="cameraScanBtn" onclick="openScanner()" style="background: var(--primary); color: white; border: none; border-radius: 10px; width: 48px; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Scan barcode">
+                          📷
+                      </button>
+                  </div>
                   <div class="suggestions" id="suggestions"></div>
                   <div class="suggestions-overlay" onclick="document.getElementById('suggestions').classList.remove('show')"></div>
               </div>
@@ -1615,10 +1624,226 @@
             }
         });
 
-        // Close modal with Escape key
+        // Close modals with Escape key - MERGED VERSION (handles all modals)
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.getElementById('dataSourcesModal').style.display === 'flex') {
+            if (e.key !== 'Escape') return;
+
+            // Check data sources modal
+            if (document.getElementById('dataSourcesModal').style.display === 'flex') {
                 hideDataSources();
+            }
+            // Check scanner modal
+            else if (scannerActive) {
+                closeScanner();
+            }
+            // Check import modal
+            else if (document.getElementById('importModal').style.display === 'flex') {
+                hideImportModal();
+            }
+        });
+
+        // ==================== BARCODE SCANNER (Quagga2) ====================
+        let scannerActive = false;
+        let torchSupported = false;
+        let cameraTrack = null;
+        let scanTimeout = null;
+
+        // Check if browser supports camera
+        function isCameraSupported() {
+            return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+        }
+
+        // Open scanner modal
+        function openScanner() {
+            // Check camera support first
+            if (!isCameraSupported()) {
+                alert('📷 Camera not supported on this device/browser. Please enter barcode manually.');
+                return;
+            }
+
+            document.getElementById('scannerModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            // Small delay to ensure modal is rendered
+            setTimeout(() => initScanner(), 300);
+        }
+
+        // Initialize Quagga
+        function initScanner() {
+            if (scannerActive) return;
+
+            updateScannerStatus('📷 Requesting camera access...');
+
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.getElementById('scanner-feed'),
+                    constraints: {
+                        facingMode: "environment", // Use back camera
+                        width: { min: 640, ideal: 1280 },
+                        height: { min: 480, ideal: 720 }
+                    },
+                    area: { top: "20%", right: "10%", left: "10%", bottom: "20%" }
+                },
+                decoder: {
+                    readers: [
+                        "ean_reader", "ean_8_reader", "upc_reader",
+                        "upc_e_reader", "code_128_reader", "code_39_reader"
+                    ]
+                },
+                locate: true,
+                numOfWorkers: Math.min(4, navigator.hardwareConcurrency || 2),
+                frequency: 5
+            }, function(err) {
+                if (err) {
+                    console.error('Scanner init error:', err);
+
+                    let errorMsg = '❌ Camera error: ';
+                    if (err.message?.includes('Permission')) {
+                        errorMsg += 'Camera access denied. Please enable camera permissions in your browser.';
+                    } else if (err.message?.includes('NotFound')) {
+                        errorMsg += 'No camera found on this device.';
+                    } else {
+                        errorMsg += err.message || 'Could not start camera.';
+                    }
+
+                    updateScannerStatus(errorMsg);
+
+                    // Auto-close after showing error
+                    setTimeout(() => closeScanner(), 3000);
+                    return;
+                }
+
+                // Get camera track for torch control
+                Quagga.CameraAccess.getActiveTrack()
+                    .then(track => {
+                        cameraTrack = track;
+                        if (track && track.getCapabilities) {
+                            const caps = track.getCapabilities();
+                            torchSupported = !!(caps && caps.torch);
+                            if (torchSupported) {
+                                document.getElementById('torchBtn').style.display = 'block';
+                            }
+                        }
+                    })
+                    .catch(e => console.log('Torch detection failed:', e));
+
+                Quagga.start();
+                scannerActive = true;
+                updateScannerStatus('📷 Camera active - align barcode with frame');
+
+                // Auto-stop after 30 seconds to save battery
+                scanTimeout = setTimeout(() => {
+                    if (scannerActive) {
+                        updateScannerStatus('⏰ Scanner timeout - please try again');
+                        setTimeout(() => closeScanner(), 1500);
+                    }
+                }, 30000);
+            });
+
+            // Handle successful scan
+            Quagga.onDetected(function(result) {
+                if (!scannerActive) return;
+
+                const barcode = result.codeResult.code;
+                console.log('Barcode detected:', barcode);
+
+                // Vibrate feedback if supported
+                if (navigator.vibrate) navigator.vibrate(200);
+
+                updateScannerStatus(`✅ Barcode: ${barcode}`);
+
+                // Close scanner
+                closeScanner();
+
+                // Update search field and trigger search
+                document.getElementById('searchInput').value = barcode;
+                document.getElementById('searchType').value = 'barcode';
+                document.getElementById('searchType').dispatchEvent(new Event('change'));
+
+                // Small delay then search (searchProduct handles its own errors)
+                setTimeout(() => {
+                    searchProduct();
+                }, 400);
+            });
+        }
+
+        // Close scanner and clean up
+        function closeScanner() {
+            if (scanTimeout) {
+                clearTimeout(scanTimeout);
+                scanTimeout = null;
+            }
+
+            if (Quagga) {
+                try {
+                    Quagga.stop();
+                } catch (e) {
+                    console.log('Quagga stop error:', e);
+                }
+            }
+
+            // Force release camera if Quagga fails
+            if (cameraTrack) {
+                try {
+                    cameraTrack.stop();
+                } catch (e) {
+                    console.log('Track stop error:', e);
+                }
+            }
+
+            scannerActive = false;
+            cameraTrack = null;
+            torchSupported = false;
+
+            document.getElementById('scannerModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.getElementById('torchBtn').style.display = 'none';
+        }
+
+        // Update status message
+        function updateScannerStatus(msg) {
+            document.getElementById('scanner-status').textContent = msg;
+        }
+
+        // Torch toggle
+        let torchOn = false;
+        async function toggleTorch() {
+            if (!cameraTrack || !torchSupported) return;
+
+            try {
+                torchOn = !torchOn;
+                await cameraTrack.applyConstraints({
+                    advanced: [{ torch: torchOn }]
+                });
+                document.getElementById('torchBtn').style.background = torchOn ? '#ff9800' : '#333';
+            } catch (e) {
+                console.error('Torch error:', e);
+                updateScannerStatus('⚠️ Flash not available');
+                torchSupported = false;
+                document.getElementById('torchBtn').style.display = 'none';
+            }
+        }
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (scannerActive) {
+                Quagga.stop();
+            }
+        });
+
+        // Handle visibility change (stop scanner when tab hidden)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && scannerActive) {
+                closeScanner();
+            }
+        });
+
+        // Hide scan button if camera not supported
+        window.addEventListener('load', function() {
+            if (!isCameraSupported()) {
+                document.getElementById('cameraScanBtn').style.display = 'none';
             }
         });
 
@@ -1762,6 +1987,59 @@
             </div>
         </div>
     </div>
+
+    <!-- BARCODE SCANNER MODAL - Add this before </body> -->
+    <div id="scannerModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10002; align-items: center; justify-content: center; flex-direction: column;">
+
+        <!-- Camera Container -->
+        <div style="width: 100%; max-width: 600px; background: #000; border-radius: 15px; overflow: hidden; position: relative; margin: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div id="scanner-feed" style="width: 100%; min-height: 400px; background: #111;"></div>
+
+            <!-- Scanner Overlay Guide -->
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;">
+                <!-- Corner markers -->
+                <div style="position: absolute; top: 30px; left: 30px; width: 50px; height: 50px; border-top: 4px solid #ff9800; border-left: 4px solid #ff9800;"></div>
+                <div style="position: absolute; top: 30px; right: 30px; width: 50px; height: 50px; border-top: 4px solid #ff9800; border-right: 4px solid #ff9800;"></div>
+                <div style="position: absolute; bottom: 30px; left: 30px; width: 50px; height: 50px; border-bottom: 4px solid #ff9800; border-left: 4px solid #ff9800;"></div>
+                <div style="position: absolute; bottom: 30px; right: 30px; width: 50px; height: 50px; border-bottom: 4px solid #ff9800; border-right: 4px solid #ff9800;"></div>
+
+                <!-- Animated scan line -->
+                <div id="scanLine" style="position: absolute; left: 40px; right: 40px; height: 2px; background: linear-gradient(90deg, transparent, #ff9800, transparent); animation: scan 2s linear infinite;"></div>
+
+                <!-- Center guideline -->
+                <div style="position: absolute; top: 50%; left: 15%; right: 15%; height: 2px; background: rgba(255,255,255,0.2); transform: translateY(-50%);"></div>
+            </div>
+        </div>
+
+        <!-- Status Message -->
+        <div id="scanner-status" style="color: white; font-size: 16px; margin: 15px 0; padding: 10px 25px; background: rgba(0,0,0,0.7); border-radius: 30px; border: 1px solid #444;">
+            📷 Initializing camera...
+        </div>
+
+        <!-- Controls -->
+        <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <button onclick="closeScanner()" style="background: #f44336; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 120px;">
+                ✕ Cancel
+            </button>
+            <button id="torchBtn" onclick="toggleTorch()" style="display: none; background: #333; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 120px;">
+                🔦 Flash
+            </button>
+        </div>
+
+        <!-- Instructions -->
+        <div style="color: #aaa; font-size: 14px; margin-top: 25px; text-align: center; padding: 0 20px;">
+            <p>📱 Center barcode in the frame • Scanner closes automatically when detected</p>
+        </div>
+    </div>
+
+    <!-- Animation keyframes - Add this in a <style> tag if you don't have one -->
+    <style>
+    @keyframes scan {
+        0% { top: 20%; opacity: 0; }
+        50% { opacity: 1; }
+        100% { top: 80%; opacity: 0; }
+    }
+    </style>
 
 </body>
 </html>
