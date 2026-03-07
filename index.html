@@ -1715,8 +1715,8 @@
                         // Log that we're scanning
                         console.log('🔄 Scanning frame...');
 
-                        // Use zxing-wasm to decode
-                        const results = await ZXingWASM.readBarcodesFromImageData(imageData, {
+                        // Use zxing-wasm with canvas element instead of imageData
+                        const results = await ZXingWASM.readBarcodesFromCanvas(canvas, {
                             formats: ["EAN-13", "EAN-8", "UPC-A", "UPC-E", "CODE-128", "CODE-39"],
                             tryHarder: true
                         });
