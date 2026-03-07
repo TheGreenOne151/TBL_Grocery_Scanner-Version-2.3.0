@@ -1700,18 +1700,28 @@
                         ctx.fillStyle = 'red';
                         ctx.fillRect(canvas.width/2 - 5, canvas.height/2 - 5, 10, 10);
 
+                        // Get image data
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                        // Simple contrast enhancement
+                        const data = imageData.data;
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Convert to grayscale and increase contrast
+                            const gray = (data[i] + data[i+1] + data[i+2]) / 3;
+                            const enhanced = gray > 128 ? 255 : 0;
+                            data[i] = enhanced;     // R
+                            data[i+1] = enhanced;   // G
+                            data[i+2] = enhanced;   // B
+                        }
+
                         console.log('🔄 Scanning frame...');
 
-                        // Try with multiple format attempts and higher resolution
-                        const results = await ZXingWASM.readBarcodesFromImageData(
-                            ctx.getImageData(0, 0, canvas.width, canvas.height),
-                            {
-                                formats: ["EAN-13", "UPC-A", "CODE-128", "EAN-8", "UPC-E", "CODE-39"],
-                                tryHarder: true,
-                                tryRotate: true,
-                                maxNumberOfSymbols: 1
-                            }
-                        );
+                        // Try with enhanced image
+                        const results = await ZXingWASM.readBarcodesFromImageData(imageData, {
+                            formats: ["EAN-13", "UPC-A", "CODE-128", "EAN-8", "UPC-E", "CODE-39"],
+                            tryHarder: true,
+                            tryRotate: true
+                        });
 
                         if (results && results.length > 0) {
                             console.log('✅ RESULTS FOUND:', results);
