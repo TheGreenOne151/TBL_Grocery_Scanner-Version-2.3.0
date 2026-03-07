@@ -1696,6 +1696,17 @@
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+                    // DEBUG: Check average brightness every 30 frames
+                    if (Math.random() < 0.03) {
+                        const data = imageData.data;
+                        let total = 0;
+                        for (let i = 0; i < data.length; i += 4) {
+                            total += data[i]; // Just red channel
+                        }
+                        const avgBrightness = total / (data.length / 4);
+                        console.log(`📊 Avg brightness: ${Math.round(avgBrightness)}`);
+                    }
+
                     try {
                         // Draw a red dot in the center to confirm video is playing
                         ctx.fillStyle = 'red';
@@ -1749,7 +1760,7 @@
                 updateScannerStatus('❌ Camera failed');
                 setTimeout(() => closeScanner(), 2000);
             }
-        } // ← This closes the initScanner function
+        }
 
         function closeScanner() {
             if (scanTimeout) clearTimeout(scanTimeout);
