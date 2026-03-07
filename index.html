@@ -1708,15 +1708,14 @@
                     }
 
                     try {
-                        // Draw a red dot in the center to confirm video is playing
+                        // Draw a red dot in the center
                         ctx.fillStyle = 'red';
                         ctx.fillRect(canvas.width/2 - 5, canvas.height/2 - 5, 10, 10);
 
-                        // Log that we're scanning
                         console.log('🔄 Scanning frame...');
 
-                        // Use zxing-wasm with canvas element instead of imageData
-                        const results = await ZXingWASM.readBarcodesFromCanvas(canvas, {
+                        // Try the more general readBarcodes method
+                        const results = await ZXingWASM.readBarcodes(imageData, {
                             formats: ["EAN-13", "EAN-8", "UPC-A", "UPC-E", "CODE-128", "CODE-39"],
                             tryHarder: true
                         });
@@ -1729,7 +1728,6 @@
                             if (navigator.vibrate) navigator.vibrate(200);
                             updateScannerStatus(`✅ ${barcode}`);
 
-                            // Close and fill
                             closeScanner();
                             document.getElementById('searchInput').value = barcode;
                             document.getElementById('searchType').value = 'barcode';
