@@ -1715,7 +1715,7 @@
 
                         console.log('🔄 Scanning frame...');
 
-                        const results = await ZXingWASM.readBarcodes(imageData, {
+                        const results = await ZXingWASM.readBarcodesFromImageData(imageData, {
                             formats: ["EAN-13", "UPC-A", "CODE-128", "EAN-8"],
                             tryHarder: true,
                             tryRotate: true,
