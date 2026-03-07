@@ -1689,23 +1689,11 @@
                 canvas.height = 480;
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-                // Scan frames continuously with debugging
+                // Scan frames continuously
                 async function scanFrame() {
                     if (!scannerActive) return;
 
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-                    // DEBUG: Check average brightness every 30 frames
-                    if (Math.random() < 0.03) {
-                        const data = imageData.data;
-                        let total = 0;
-                        for (let i = 0; i < data.length; i += 4) {
-                            total += data[i]; // Just red channel
-                        }
-                        const avgBrightness = total / (data.length / 4);
-                        console.log(`📊 Avg brightness: ${Math.round(avgBrightness)}`);
-                    }
 
                     try {
                         // Draw a red dot in the center
@@ -1714,11 +1702,16 @@
 
                         console.log('🔄 Scanning frame...');
 
-                        // Try the more general readBarcodes method
-                        const results = await ZXingWASM.readBarcodes(imageData, {
-                            formats: ["EAN-13", "EAN-8", "UPC-A", "UPC-E", "CODE-128", "CODE-39"],
-                            tryHarder: true
-                        });
+                        // Try with multiple format attempts and higher resolution
+                        const results = await ZXingWASM.readBarcodesFromImageData(
+                            ctx.getImageData(0, 0, canvas.width, canvas.height),
+                            {
+                                formats: ["EAN-13", "UPC-A", "CODE-128", "EAN-8", "UPC-E", "CODE-39"],
+                                tryHarder: true,
+                                tryRotate: true,
+                                maxNumberOfSymbols: 1
+                            }
+                        );
 
                         if (results && results.length > 0) {
                             console.log('✅ RESULTS FOUND:', results);
@@ -1735,8 +1728,6 @@
                             setTimeout(() => searchProduct(), 400);
 
                             return;
-                        } else {
-                            console.log('❌ No barcode detected in this frame');
                         }
                     } catch (e) {
                         console.error('Scanning error:', e);
