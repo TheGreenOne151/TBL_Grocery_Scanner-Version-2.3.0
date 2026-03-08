@@ -1698,6 +1698,14 @@
                     // Get image data BEFORE drawing the red dot
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+                    // 👇 INSERT THE DIAGNOSTIC CODE HERE 👇
+                    console.log('ImageData details:', {
+                      width: imageData.width,
+                      height: imageData.height,
+                      colorSpace: imageData.colorSpace,
+                      dataLength: imageData.data.length
+                    });
+
                     // Now draw the red dot (for visual feedback only)
                     ctx.fillStyle = 'red';
                     ctx.fillRect(canvas.width/2 - 5, canvas.height/2 - 5, 10, 10);
