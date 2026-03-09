@@ -1780,9 +1780,14 @@
 
                         console.log('🔄 Scanning frame...');
 
-                        // Use Html5Qrcode to decode the processed image
+                        // Use Html5Qrcode with the correct method
                         const html5Decoder = new Html5Qrcode("scanner-feed");
-                        const decodedText = await html5Decoder.scanFile(processedImageData, true);
+
+                        // Convert canvas to blob/File for Html5Qrcode
+                        const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/jpeg'));
+                        const file = new File([blob], "frame.jpg", { type: "image/jpeg" });
+
+                        const decodedText = await html5Decoder.scanFile(file, true);
 
                         if (decodedText) {
                             console.log('✅ RESULTS FOUND:', decodedText);
