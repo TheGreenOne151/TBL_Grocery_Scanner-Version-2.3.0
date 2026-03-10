@@ -4066,35 +4066,17 @@ async def serve_frontend():
             html_content = f.read()
         return HTMLResponse(content=html_content, status_code=200)
     except FileNotFoundError:
-        # If index.html doesn't exist, serve a basic page with instructions
-        basic_html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>TBL Grocery Scanner</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                body {{ font-family: Arial, sans-serif; padding: 40px; text-align: center; }}
-                h1 {{ color: #2e7d32; }}
-                .container {{ max-width: 600px; margin: 0 auto; }}
-                .card {{ background: #f8f9fa; padding: 30px; border-radius: 10px; border: 1px solid #dee2e6; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>ðŸŒ¿ TBL Grocery Scanner Backend</h1>
-                <div class="card">
-                    <p>âœ“ Backend is running!</p>
-                    <p>To use the scanner, place <code>index.html</code> in the same directory as this Python file.</p>
-                    <p>ðŸ“Š <a href="/health">Health Check</a></p>
-                    <p>ðŸ“š <a href="/scoring-methodology">Scoring Methodology</a></p>
-                    <p>ðŸ› ï¸ <a href="/scanner/health">Scanner Health</a></p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=basic_html, status_code=200)
+        # If index.html doesn't exist, serve a basic page with instructions from file
+        try:
+            with open("backend_status.html", "r", encoding="utf-8") as f:
+                html_content = f.read()
+            return HTMLResponse(content=html_content, status_code=200)
+        except FileNotFoundError:
+            # Ultimate fallback - minimal HTML
+            return HTMLResponse(
+                content="<h1>Backend Running</h1><p>Place index.html in the directory</p>",
+                status_code=200
+            )
 
 
 # ==================== ALSO ADD THIS: Favicon endpoint ====================
