@@ -3646,8 +3646,8 @@ async def reset_excel_file():
 
 @app.get("/validate/barcode/{barcode}")
 async def validate_barcode_format(barcode: str):
-    """Validate barcode format and provide compatibility info for zxing-wasm"""
-    # zxing-wasm supported formats (based on ZXing-CPP)
+    """Validate barcode format and provide compatibility info for Html5Qrcode""
+    # Html5Qrcode supported formats
     patterns = {
         "EAN-13": r"^\d{13}$",
         "EAN-8": r"^\d{8}$",
@@ -3673,10 +3673,10 @@ async def validate_barcode_format(barcode: str):
         "length": len(barcode),
         "detected_formats": detected_formats,
         "is_numeric": barcode.isdigit(),
-        "zxing_wasm_compatible": len(detected_formats) > 0,
-        "library": "zxing-wasm (ZXing C++ port)",
+        "html5qrcode_compatible": len(detected_formats) > 0,
+        "library": "Html5Qrcode v2.3.8",
         "suggested_action": (
-            "✓ Compatible with zxing-wasm scanner"
+            "✓ Compatible with Html5Qrcode scanner"
             if detected_formats
             else "⚠️ This format may not be supported. Try manual entry."
         ),
@@ -3853,7 +3853,7 @@ async def debug_storage():
 @app.get("/product/{barcode}")
 async def get_product_info(barcode: str) -> Dict[str, Any]:
     """Get comprehensive product info by barcode with verified certifications"""
-    # Add Quagga2 validation
+    # Add Html5Qrcode validation
     if not barcode or barcode.strip() == "":
         raise HTTPException(
             status_code=400,
@@ -3869,7 +3869,7 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
 
     # Enhanced logging for debugging scanner issues
     logger.info(
-        f"zxing-wasm scan -> Barcode: {barcode}, Length: {len(barcode)}, Found in OFF: {product.get('found', False)}"
+        f"Html5Qrcode scan -> Barcode: {barcode}, Length: {len(barcode)}, Found in OFF: {product.get('found', False)}"
     )
 
     brand_name = product.get("brand", "Unknown")
@@ -3921,7 +3921,7 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
         "certification_sources": FileConfig.CERT_SOURCES,
         "scoring_methodology": f"Base {ScoringConfig.BASE_SCORE} + Objective Certification Bonuses Only + Multi-Cert Bonus",
         "methodology_explanation": "See /scoring-methodology for detailed breakdown",
-        "scanner_notes": "Scanned with zxing-wasm (ZXing C++ port). Fast, accurate, and actively maintained.",
+        "scanner_notes": "Scanned with Html5Qrcode v2.3.8. Lightweight, mobile-optimized barcode scanner.",
     }
 
     # Include Open Food Facts data if product was found
@@ -3953,7 +3953,7 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
         }
 
     logger.info(
-        f"zxing-wasm product lookup for barcode: {barcode} - Found: {product.get('found', False)}"
+        f"Html5Qrcode product lookup for barcode: {barcode} - Found: {product.get('found', False)}"
     )
     return sanitize_for_json(result)
 
@@ -3965,9 +3965,9 @@ async def get_product_info(barcode: str) -> Dict[str, Any]:
 async def scanner_health():
     """Check scanner system health and compatibility"""
     return {
-        "scanner_system": "zxing-wasm (ZXing C++ port via WebAssembly)",
+        "scanner_system": "Html5Qrcode (Lightweight JavaScript Scanner)",
         "backend_integration": "✓ Ready",
-        "library": "zxing-wasm v2.0.0 - actively maintained",
+        "library": "Html5Qrcode v2.3.8 - actively maintained",
         "api_endpoints": {
             "scan": "/scan (POST) - Main scanning endpoint",
             "product_lookup": "/product/{barcode} (GET)",
@@ -4158,7 +4158,7 @@ if __name__ == "__main__":
         if parent:
             logger.info(f"Test mapping: '{product}' → '{parent}'")
 
-    logger.info("🎯 Scanner System: ZXing-web integrated")
+    logger.info("🎯 Scanner System: Html5Qrcode integrated")
     logger.info("🌐 Open http://localhost:8000 in your browser")
     logger.info(
         "📱 For mobile: Use your computer's IP address with port 8000")

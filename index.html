@@ -1653,7 +1653,7 @@
             }
         });
 
-        // ==================== ZXING-WASM BARCODE SCANNER ====================
+        // ==================== HTML5QRCODE BARCODE SCANNER ====================
         let scannerActive = false;
         let scanTimeout = null;
         let videoStream = null;
@@ -1701,72 +1701,40 @@
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                 // Create ONE Html5Qrcode instance for the entire scan session
-                const html5Decoder = new Html5Qrcode("scanner-feed");
+                // WITH all refinement options
+                const html5Decoder = new Html5Qrcode("scanner-feed", {
+                    verbose: false,
+                    formatsToSupport: [
+                        Html5QrcodeScannerFormats.EAN_13,
+                        Html5QrcodeScannerFormats.EAN_8,
+                        Html5QrcodeScannerFormats.UPC_A,
+                        Html5QrcodeScannerFormats.UPC_E,
+                        Html5QrcodeScannerFormats.CODE_128,
+                        Html5QrcodeScannerFormats.CODE_39
+                    ],
+                    // These are the key refinement options:
+                    useBarCodeDetectorIfSupported: true,
+                    experimentalFeatures: {
+                        useBarCodeDetector: true
+                    }
+                });
 
                 // Scan frames continuously
                 async function scanFrame() {
                     if (!scannerActive) return;
 
+                    // Draw video to canvas
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                    // Get image data BEFORE drawing the red dot
+                    // Get image data (RAW, no preprocessing)
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-                    // 👇 ANTI-GLARE PREPROCESSING STARTS HERE 👇
-                    // Create a temporary canvas for processing
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = canvas.width;
-                    tempCanvas.height = canvas.height;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.putImageData(imageData, 0, 0);
-
-                    // Convert to grayscale to reduce color-based glare
-                    const grayImageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
-                    const data = grayImageData.data;
-                    for (let i = 0; i < data.length; i += 4) {
-                        // Use luminance formula for better grayscale conversion
-                        const gray = Math.round(0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2]);
-                        data[i] = gray;      // R
-                        data[i+1] = gray;    // G
-                        data[i+2] = gray;    // B
-                        // data[i+3] is alpha - leave unchanged
-                    }
-                    tempCtx.putImageData(grayImageData, 0, 0);
-
-                    // Apply gentler contrast enhancement (preserves bar patterns)
-                    const enhancedImageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
-                    const enhancedData = enhancedImageData.data;
-
-                    // Apply mild contrast stretch (not binary threshold)
-                    for (let i = 0; i < enhancedData.length; i += 4) {
-                        // Simple contrast enhancement - stretches the range
-                        const val = enhancedData[i];
-                        // Stretch contrast: darken darks, lighten lights (but preserve grayscale)
-                        const enhanced = val < 100 ? Math.max(0, val - 20) :
-                                        (val > 155 ? Math.min(255, val + 20) : val);
-                        enhancedData[i] = enhanced;
-                        enhancedData[i+1] = enhanced;
-                        enhancedData[i+2] = enhanced;
-                    }
-                    tempCtx.putImageData(enhancedImageData, 0, 0);
-
-                    // Get the processed image data for scanning
-                    const processedImageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
-
-                    // 👇 DIAGNOSTIC (keep this to verify)
-                    console.log('Processed ImageData details:', {
-                        width: processedImageData.width,
-                        height: processedImageData.height,
-                        colorSpace: processedImageData.colorSpace,
-                        dataLength: processedImageData.data.length
-                    });
-
-                    // Now draw the red dot (for visual feedback only)
+                    // Draw the red dot (for visual feedback only)
                     ctx.fillStyle = 'red';
                     ctx.fillRect(canvas.width/2 - 5, canvas.height/2 - 5, 10, 10);
 
                     try {
-                        // Sample center pixel (should now show camera feed)
+                        // Sample center pixel occasionally for debugging
                         if (Math.random() < 0.03) {
                             const centerIndex = (Math.floor(canvas.height/2) * canvas.width + Math.floor(canvas.width/2)) * 4;
                             console.log('📸 Center pixel RGB:',
@@ -1778,10 +1746,11 @@
 
                         console.log('🔄 Scanning frame...');
 
-                        // Convert canvas to blob/File for Html5Qrcode
-                        const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/jpeg'));
+                        // Convert canvas directly to blob/File for Html5Qrcode
+                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
                         const file = new File([blob], "frame.jpg", { type: "image/jpeg" });
 
+                        // scanFile automatically applies the configured options
                         const decodedText = await html5Decoder.scanFile(file, true);
 
                         if (decodedText) {
