@@ -4074,10 +4074,10 @@ async def serve_frontend():
             <title>TBL Grocery Scanner</title>
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-                body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
-                h1 { color: #2e7d32; }
-                .container { max-width: 600px; margin: 0 auto; }
-                .card { background: #f8f9fa; padding: 30px; border-radius: 10px; border: 1px solid #dee2e6; }
+                body {{ font-family: Arial, sans-serif; padding: 40px; text-align: center; }}
+                h1 {{ color: #2e7d32; }}
+                .container {{ max-width: 600px; margin: 0 auto; }}
+                .card {{ background: #f8f9fa; padding: 30px; border-radius: 10px; border: 1px solid #dee2e6; }}
             </style>
         </head>
         <body>
