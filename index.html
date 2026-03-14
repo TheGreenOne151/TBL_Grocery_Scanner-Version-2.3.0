@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TBL Grocery Scanner</title>
-<<<<<<< HEAD
 
     <!-- Html5Qrcode library from CDNJS (more reliable) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -19,8 +18,6 @@
         };
     </script>
 
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
     <style>
         * {
             margin: 0;
@@ -488,7 +485,6 @@
             border-bottom: none;
         }
 
-<<<<<<< HEAD
         /* ===== ADD MOBILE FIXES HERE ===== */
         @media (max-width: 768px) {
             .suggestions {
@@ -541,8 +537,6 @@
         }
         /* ===== END MOBILE FIXES ===== */
 
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
         .user-section {
             background: rgba(46, 125, 50, 0.1);
             padding: 15px;
@@ -596,7 +590,6 @@
                 padding: 10px 5px;
             }
         }
-<<<<<<< HEAD
 
         .source-card {
             background: #f8f9fa;
@@ -658,9 +651,6 @@
 
     </style>
 
-=======
-    </style>
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 </head>
 <body>
     <div class="header">
@@ -688,7 +678,6 @@
                     </select>
                 </div>
 
-<<<<<<< HEAD
                 <div class="input-group" id="categoryGroup" style="display: none;">
                     <label for="categorySelect">Product Category (optional):</label>
                     <select id="categorySelect">
@@ -729,13 +718,6 @@
                   <div class="suggestions" id="suggestions"></div>
                   <div class="suggestions-overlay" onclick="document.getElementById('suggestions').classList.remove('show')"></div>
               </div>
-=======
-                <div class="input-group">
-                    <label for="searchInput" id="searchLabel">Enter Brand Name:</label>
-                    <input type="text" id="searchInput" placeholder="e.g., Coca-Cola, Nestlé, Ben & Jerry's">
-                    <div class="suggestions" id="suggestions"></div>
-                </div>
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 
                 <button class="btn btn-primary" onclick="searchProduct()">
                     🔍 Search
@@ -783,7 +765,6 @@
                     <div class="certifications">
                         <h3 style="margin-bottom: 10px; font-size: 16px;">✅ Certifications</h3>
                         <div id="certBadges"></div>
-<<<<<<< HEAD
                         <div id="researchStatus" style="display: none; margin-top: 15px; padding: 10px; background: #f0f9f0; border-radius: 10px; border-left: 4px solid #4CAF50;">
                             <div style="display: flex; align-items: center;">
                                 <div style="background: #4CAF50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-weight: bold;">
@@ -795,8 +776,6 @@
                                 </div>
                             </div>
                         </div>
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
                     </div>
 
                     <div id="loggedInActions" style="display: none;">
@@ -905,14 +884,10 @@
 
     <div class="footer">
         <p>Version 2.3.0 | <a href="https://tbl-grocery-scanner.onrender.com/scoring-methodology" target="_blank">Methodology</a></p>
-<<<<<<< HEAD
         <p>Product search via Open Food Facts API</p>
         <p>Certification verification using: B Corp, Fairtrade®, Rainforest Alliance, and Leaping Bunny databases
            <a href="javascript:void(0)" onclick="showDataSources()" style="font-size: 0.9em; margin-left: 8px; text-decoration: underline; cursor: pointer;">(view sources)</a>
         </p>
-=======
-        <p>Powered by the Open Food Facts API for searching products/brands/barcodes and verified certifications from B Corp, Fair Trade, Rainforest Alliance & Leaping Bunny</p>
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
     </div>
 
     <script>
@@ -926,12 +901,9 @@
         window.onload = function() {
             checkLoginStatus();
             updateCompareDisplay();
-<<<<<<< HEAD
 
             // Trigger the search type change handler to show/hide category dropdown
             document.getElementById('searchType').dispatchEvent(new Event('change'));
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
         };
 
         // Tab switching
@@ -1373,16 +1345,12 @@
             const type = this.value;
             const label = document.getElementById('searchLabel');
             const input = document.getElementById('searchInput');
-<<<<<<< HEAD
             const categoryGroup = document.getElementById('categoryGroup');
             const categoryInfo = document.getElementById('categoryInfo');
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 
             if (type === 'brand') {
                 label.textContent = 'Enter Brand Name:';
                 input.placeholder = 'e.g., Coca-Cola, Nestlé, Ben & Jerry\'s';
-<<<<<<< HEAD
                 categoryGroup.style.display = 'block';
                 categoryInfo.style.display = 'block';
             } else if (type === 'product') {
@@ -1395,14 +1363,6 @@
                 input.placeholder = 'e.g., 012345678905';
                 categoryGroup.style.display = 'none';
                 categoryInfo.style.display = 'none';
-=======
-            } else if (type === 'product') {
-                label.textContent = 'Enter Product Name:';
-                input.placeholder = 'e.g., Cheerios, Oreo Cookies, Dove Soap';
-            } else {
-                label.textContent = 'Enter Barcode:';
-                input.placeholder = 'e.g., 012345678905';
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
             }
         });
 
@@ -1423,7 +1383,6 @@
                 const response = await fetch(`${API_URL}/search-brand?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
 
-<<<<<<< HEAD
                 console.log('Suggestions data:', data);
 
                 const suggestionsDiv = document.getElementById('suggestions');
@@ -1435,17 +1394,6 @@
                             ${suggestion.category ? `<br><small>Category: ${suggestion.category}</small>` : ''}
                         </div>
                     `).join('');
-=======
-                const suggestionsDiv = document.getElementById('suggestions');
-
-                if (data.success && data.brand) {
-                    suggestionsDiv.innerHTML = `
-                        <div class="suggestion-item" onclick="selectSuggestion('${data.brand}')">
-                            <strong>${data.brand}</strong>
-                            ${data.parent_company ? `<br><small>Parent: ${data.parent_company}</small>` : ''}
-                        </div>
-                    `;
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
                     suggestionsDiv.classList.add('show');
                 } else {
                     suggestionsDiv.classList.remove('show');
@@ -1455,7 +1403,6 @@
             }
         }
 
-<<<<<<< HEAD
         // Event delegation for suggestions (works on mobile)
         document.getElementById('suggestions').addEventListener('click', function(e) {
             const suggestionItem = e.target.closest('.suggestion-item');
@@ -1475,8 +1422,6 @@
             }
         });
 
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
         function selectSuggestion(brand) {
             document.getElementById('searchInput').value = brand;
             document.getElementById('suggestions').classList.remove('show');
@@ -1486,10 +1431,7 @@
         async function searchProduct() {
             const searchType = document.getElementById('searchType').value;
             const searchInput = document.getElementById('searchInput').value.trim();
-<<<<<<< HEAD
             const selectedCategory = document.getElementById('categorySelect').value;
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 
             if (!searchInput) {
                 showError('Please enter a search term');
@@ -1507,7 +1449,6 @@
                     const response = await fetch(`${API_URL}/product/${encodeURIComponent(searchInput)}`);
                     data = await response.json();
                 } else {
-<<<<<<< HEAD
                   const payload = {
                       barcode: '',
                       brand: searchType === 'brand' ? searchInput : '',
@@ -1515,14 +1456,6 @@
                                    (searchType === 'brand' ? searchInput : ''),
                       category: searchType === 'brand' ? selectedCategory : ''
                   };
-=======
-                    const payload = {
-                        barcode: '',
-                        brand: searchType === 'brand' ? searchInput : '',
-                        product_name: searchType === 'product' ? searchInput : '',
-                        category: ''
-                    };
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 
                     const response = await fetch(`${API_URL}/scan`, {
                         method: 'POST',
@@ -1535,15 +1468,12 @@
                 hideLoading();
                 displayResults(data);
 
-<<<<<<< HEAD
                 // Show a message if category was used
                 if (searchType === 'brand' && selectedCategory) {
                     showSuccess(`Showing certifications for ${selectedCategory} products from this brand`);
                     setTimeout(() => hideSuccess(), 3000);
                 }
 
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
             } catch (error) {
                 hideLoading();
                 showError(`Search failed: ${error.message}`);
@@ -1558,7 +1488,6 @@
 
             lastSearchResult = data;
 
-<<<<<<< HEAD
             console.log('=== DEBUGGING CERTIFICATIONS ===');
             console.log('Raw certifications data:', data.certifications);
             console.log('Type:', typeof data.certifications);
@@ -1570,10 +1499,6 @@
             let productDisplay = data.product_name ? `Product: ${data.product_name}` : '';
 
             document.getElementById('productName').textContent = productDisplay;
-=======
-            document.getElementById('brandName').textContent = data.brand || 'Unknown';
-            document.getElementById('productName').textContent = data.product_name ? `Product: ${data.product_name}` : '';
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
             document.getElementById('overallScore').textContent = (data.overall_tbl_score || 0).toFixed(1);
 
             const grade = data.grade || 'UNKNOWN';
@@ -1585,7 +1510,6 @@
             document.getElementById('envScore').textContent = (data.environmental_score || 0).toFixed(1);
             document.getElementById('econScore').textContent = (data.economic_score || 0).toFixed(1);
 
-<<<<<<< HEAD
             // ===== REPLACE FROM HERE =====
             const certBadges = document.getElementById('certBadges');
             let certs = data.certifications || [];
@@ -1597,16 +1521,11 @@
             }
 
             console.log('Processing certs:', certs);
-=======
-            const certBadges = document.getElementById('certBadges');
-            const certs = data.certifications || [];
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 
             if (certs.length > 0) {
                 certBadges.innerHTML = certs.map(cert =>
                     `<span class="cert-badge">${cert}</span>`
                 ).join('');
-<<<<<<< HEAD
                 console.log('Added', certs.length, 'certification badges');
             } else {
                 certBadges.innerHTML = '<p class="no-certs">No verified certifications found</p>';
@@ -1620,10 +1539,6 @@
                 researchStatus.style.display = 'block';
             } else {
                 researchStatus.style.display = 'none';
-=======
-            } else {
-                certBadges.innerHTML = '<p class="no-certs">No verified certifications found</p>';
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
             }
 
             showResults();
@@ -1700,7 +1615,6 @@
                 hideImportModal();
             }
         });
-<<<<<<< HEAD
 
         // Data Sources Modal Functions
         function showDataSources() {
@@ -1884,8 +1798,6 @@
                 if (btn) btn.style.display = 'none';
             }
         });
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
     </script>
 
     <!-- IMPORT MODAL -->
@@ -1912,7 +1824,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
     <!-- DATA SOURCES MODAL -->
     <div id="dataSourcesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1001; align-items: center; justify-content: center;">
         <div style="background: white; padding: 30px; border-radius: 15px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
@@ -2081,7 +1992,5 @@
     }
     </style>
 
-=======
->>>>>>> a5f22b56b3603f91021776110f4daca48f9efc86
 </body>
 </html>
